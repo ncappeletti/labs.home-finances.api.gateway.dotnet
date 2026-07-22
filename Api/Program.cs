@@ -1,3 +1,5 @@
+using Api.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,6 +9,29 @@ builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 
+const string CorsPolicyName = "DefaultCors";
+var corsOptions = builder.Configuration
+    .GetSection(CorsOptions.SectionName)
+    .Get<CorsOptions>() ?? new CorsOptions();
+var allowedOrigins = corsOptions.GetAllowedOrigins();
+
+if (allowedOrigins.Length > 0)
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(CorsPolicyName, policy =>
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+
+            if (corsOptions.AllowCredentials)
+            {
+                policy.AllowCredentials();
+            }
+        });
+    });
+}
 
 var app = builder.Build();
 
@@ -20,6 +45,11 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = "swagger";
         options.SwaggerEndpoint("/openapi/v1.json", "Mi API v1");
     });
+}
+
+if (allowedOrigins.Length > 0)
+{
+    app.UseCors(CorsPolicyName);
 }
 
 app.UseHttpsRedirection();
