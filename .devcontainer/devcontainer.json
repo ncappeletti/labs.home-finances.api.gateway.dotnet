@@ -1,0 +1,27 @@
+{
+  "name": "Home Finances API Gateway",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "mounts": [
+    "source=home-finances-nuget-cache,target=/home/vscode/.nuget/packages,type=volume"
+  ],
+  "forwardPorts": [5080, 7081],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "humao.rest-client"
+      ]
+    }
+  },
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.nuget && dotnet restore HomeFinances.Api.Gateway.slnx && dotnet dev-certs https --trust",
+  "remoteEnv": {
+    "ASPNETCORE_ENVIRONMENT": "Development"
+  }
+}
